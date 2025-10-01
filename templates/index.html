@@ -33,6 +33,12 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title">2. データ編集</h5>
+                <div class="mb-3">
+                    <button id="decodeRowBtn" class="btn btn-sm btn-info">選択行を全体デコード</button>
+                    <button id="editRowBtn" class="btn btn-sm btn-primary">選択行を編集</button>
+                    <button id="deleteRowBtn" class="btn btn-sm btn-danger">選択行を削除</button>
+                    <button id="addRowBtn" class="btn btn-sm btn-success">行を追加</button>
+                </div>
                 <div id="dataTableContainer" class="table-responsive">
                     <table class="table table-bordered table-hover">
                         <thead id="dataThead">
@@ -41,7 +47,6 @@
                         </tbody>
                     </table>
                 </div>
-                 <button id="addRow" class="btn btn-success mt-2">行を追加</button>
             </div>
         </div>
 

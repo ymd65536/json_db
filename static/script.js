@@ -2,6 +2,7 @@ $(document).ready(function() {
     let data = [];
     let headers = [];
     let currentEditIndex = null;
+    let selectedRowIndex = null;
 
     // ページの読み込み時にファイルリストを取得
     function loadFileList() {
@@ -46,6 +47,7 @@ $(document).ready(function() {
                 return;
             }
             data = responseData;
+            selectedRowIndex = null; // ファイルを再読み込みしたら選択を解除
             renderTable();
             const now = new Date();
             const timeString = now.toLocaleTimeString('ja-JP');
@@ -75,24 +77,18 @@ $(document).ready(function() {
             return acc;
         }, new Set()));
         
-        let headerHtml = '<tr><th>#</th>';
+        let headerHtml = '<tr><th></th>'; // ラジオボタン用のヘッダーセル
         headers.forEach(h => headerHtml += `<th>${h}</th>`);
-        headerHtml += '<th>操作</th></tr>';
         $thead.html(headerHtml);
 
         // ボディの作成
         data.forEach((row, index) => {
-            let rowHtml = `<tr><td>${index + 1}</td>`;
+            const isSelected = index === selectedRowIndex ? 'selected-row' : '';
+            let rowHtml = `<tr class="${isSelected}"><td><input type="radio" name="rowSelector" data-index="${index}"></td>`;
             headers.forEach(h => {
                 const value = row[h] !== undefined ? row[h] : '';
                 rowHtml += `<td class="editable-cell" data-index="${index}" data-key="${h}" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
             });
-            rowHtml += `
-                <td class="action-buttons">
-                    <button class="btn btn-sm btn-info decode-btn" data-index="${index}">全体デコード</button>
-                    <button class="btn btn-sm btn-primary edit-btn" data-index="${index}">行編集</button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">削除</button>
-                </td>`;
             rowHtml += '</tr>';
             $tbody.append(rowHtml);
         });
@@ -114,27 +110,38 @@ $(document).ready(function() {
         });
     }
 
-    // 行の追加
-    $('#addRow').on('click', function() {
+    // 行選択
+    $(document).on('change', 'input[name="rowSelector"]', function() {
+        selectedRowIndex = parseInt($(this).data('index'), 10);
+        renderTable(); // 選択を反映して再描画
+    });
+
+    // --- 操作ボタンのイベントハンドラ ---
+    $('#addRowBtn').on('click', function() {
         currentEditIndex = null; // 新規追加モード
         $('#jsonEditor').val(JSON.stringify({}, null, 2));
         $('#editModalLabel').text('行の追加');
         $('#editModal').modal('show');
     });
 
-    // 行編集ボタン
-    $(document).on('click', '.edit-btn', function() {
-        currentEditIndex = $(this).data('index');
+    $('#editRowBtn').on('click', function() {
+        if (selectedRowIndex === null) {
+            alert('操作対象の行を選択してください。');
+            return;
+        }
+        currentEditIndex = selectedRowIndex;
         const rowData = data[currentEditIndex];
         $('#jsonEditor').val(JSON.stringify(rowData, null, 2));
         $('#editModalLabel').text(`行 ${currentEditIndex + 1} の編集`);
         $('#editModal').modal('show');
     });
     
-    // 全体デコードボタン
-    $(document).on('click', '.decode-btn', function() {
-        const index = $(this).data('index');
-        const rowData = data[index];
+    $('#decodeRowBtn').on('click', function() {
+        if (selectedRowIndex === null) {
+            alert('操作対象の行を選択してください。');
+            return;
+        }
+        const rowData = data[selectedRowIndex];
         
         fetch('/api/decode_b64', {
             method: 'POST',
@@ -148,14 +155,47 @@ $(document).ready(function() {
                 return;
             }
             // 編集モーダルにデコードされたデータを表示
-            currentEditIndex = index;
+            currentEditIndex = selectedRowIndex;
             $('#jsonEditor').val(JSON.stringify(decodedData, null, 2));
-            $('#editModalLabel').text(`行 ${index + 1} の全体デコード結果 (編集可)`);
+            $('#editModalLabel').text(`行 ${currentEditIndex + 1} の全体デコード結果 (編集可)`);
             $('#editModal').modal('show');
         })
         .catch(error => {
             console.error('Decode error:', error);
             alert('デコードに失敗しました。');
+        });
+    });
+
+    $('#deleteRowBtn').on('click', function() {
+        if (selectedRowIndex === null) {
+            alert('操作対象の行を選択してください。');
+            return;
+        }
+        if (!confirm(`行 ${selectedRowIndex + 1} を削除しますか？`)) {
+            return;
+        }
+
+        fetch(`/api/data/${selectedRowIndex}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.error) {
+                alert('エラー: ' + responseData.error);
+                return;
+            }
+             // データ再取得 & テーブル再描画
+            return fetch('/api/data');
+        })
+        .then(response => response.json())
+        .then(allData => {
+            data = allData;
+            selectedRowIndex = null; // 削除後は選択解除
+            renderTable();
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            alert('データの削除に失敗しました。');
         });
     });
 
@@ -239,36 +279,6 @@ $(document).ready(function() {
         .catch(error => {
             console.error('Save error:', error);
             alert('データの保存に失敗しました。');
-        });
-    });
-
-    // 削除ボタン
-    $(document).on('click', '.delete-btn', function() {
-        const index = $(this).data('index');
-        if (!confirm(`行 ${index + 1} を削除しますか？`)) {
-            return;
-        }
-
-        fetch(`/api/data/${index}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(responseData => {
-            if (responseData.error) {
-                alert('エラー: ' + responseData.error);
-                return;
-            }
-             // データ再取得 & テーブル再描画
-            return fetch('/api/data');
-        })
-        .then(response => response.json())
-        .then(allData => {
-            data = allData;
-            renderTable();
-        })
-        .catch(error => {
-            console.error('Delete error:', error);
-            alert('データの削除に失敗しました。');
         });
     });
 

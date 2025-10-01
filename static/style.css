@@ -22,6 +22,10 @@ body {
     background-color: #f2f2f2;
 }
 
+tr.selected-row {
+    background-color: #d4edda !important; /* Bootstrap success color */
+}
+
 .action-buttons button {
     margin-right: 5px;
 }
