@@ -319,10 +319,15 @@ $(document).ready(function() {
 
     // ローカルに保存
     $('#saveButton').on('click', function() {
+        const filename = $('#fileSelector').val();
+        if (!filename) {
+            alert('ファイルを選択してください。');
+            return;
+        }
         fetch('/api/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data) // フロントエンドの現在のデータを送信
+            body: JSON.stringify({ filename: filename, data: data }) // フロントエンドの現在のデータを送信
         })
         .then(response => response.json())
         .then(responseData => {
@@ -340,6 +345,12 @@ $(document).ready(function() {
 
     // S3にアップロード
     $('#s3UploadButton').on('click', function() {
+        const filename = $('#fileSelector').val();
+        if (!filename) {
+            alert('ファイルを選択してください。');
+            return;
+        }
+
         const s3Config = {
             aws_profile: $('#awsProfile').val() || null,
             aws_region: $('#awsRegion').val(),
@@ -353,7 +364,11 @@ $(document).ready(function() {
         }
         
         // まずローカルに保存
-        fetch('/api/save', { method: 'POST' })
+        fetch('/api/save', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: filename, data: data })
+        })
         .then(res => res.json())
         .then(saveRes => {
             if (saveRes.error) {

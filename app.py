@@ -141,17 +141,26 @@ def decode_b64():
 def save_file():
     """現在のデータをLD-JSON形式でファイルに保存します。"""
     global ld_json_data, current_filename
-    if not current_filename:
-        return jsonify({"error": "保存対象のファイルがありません"}), 400
-
+    
     try:
         # フロントエンドから送信された最新のデータでサーバー側のデータを更新
-        updated_data = request.get_json()
+        updated_data = request.get_json(force=True)
         if updated_data is None:
             return jsonify({"error": "保存するデータがありません"}), 400
-        ld_json_data = updated_data
+        
+        # データ本体とファイル名を取得
+        ld_json_data = updated_data.get('data', [])
+        filename = updated_data.get('filename')
 
-        save_path = os.path.join(SAVED_JSON_DIR, current_filename)
+        if not filename:
+            if not current_filename:
+                return jsonify({"error": "保存対象のファイルがありません"}), 400
+            filename = current_filename
+        else:
+            current_filename = filename
+
+
+        save_path = os.path.join(SAVED_JSON_DIR, filename)
         with open(save_path, 'w', encoding='utf-8') as f:
             for item in ld_json_data:
                 f.write(json.dumps(item, ensure_ascii=False) + '\n')
@@ -188,7 +197,12 @@ def s3_upload():
     try:
         session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
         s3 = session.client('s3')
-        s3.upload_file(saved_filepath, s3_bucket, s3_key)
+        s3.upload_file(
+            saved_filepath, 
+            s3_bucket, 
+            s3_key,
+            ExtraArgs={'ContentType': 'application/json'}
+        )
         return jsonify({"message": f"ファイル {saved_filepath} が s3://{s3_bucket}/{s3_key} にアップロードされました"})
     except Exception as e:
         return jsonify({"error": f"S3へのアップロード中にエラーが発生しました: {str(e)}"}), 500
