@@ -14,6 +14,14 @@ body {
     text-overflow: ellipsis;
 }
 
+.table td.editable-cell {
+    cursor: pointer;
+}
+
+.table td.editable-cell:hover {
+    background-color: #f2f2f2;
+}
+
 .action-buttons button {
     margin-right: 5px;
 }

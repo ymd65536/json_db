@@ -85,12 +85,12 @@ $(document).ready(function() {
             let rowHtml = `<tr><td>${index + 1}</td>`;
             headers.forEach(h => {
                 const value = row[h] !== undefined ? row[h] : '';
-                rowHtml += `<td title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
+                rowHtml += `<td class="editable-cell" data-index="${index}" data-key="${h}" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
             });
             rowHtml += `
                 <td class="action-buttons">
-                    <button class="btn btn-sm btn-info decode-btn" data-index="${index}">デコード</button>
-                    <button class="btn btn-sm btn-primary edit-btn" data-index="${index}">編集</button>
+                    <button class="btn btn-sm btn-info decode-btn" data-index="${index}">全体デコード</button>
+                    <button class="btn btn-sm btn-primary edit-btn" data-index="${index}">行編集</button>
                     <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">削除</button>
                 </td>`;
             rowHtml += '</tr>';
@@ -118,22 +118,20 @@ $(document).ready(function() {
     $('#addRow').on('click', function() {
         currentEditIndex = null; // 新規追加モード
         $('#jsonEditor').val(JSON.stringify({}, null, 2));
-        $('#encodeB64').prop('checked', false);
         $('#editModalLabel').text('行の追加');
         $('#editModal').modal('show');
     });
 
-    // 編集ボタン
+    // 行編集ボタン
     $(document).on('click', '.edit-btn', function() {
         currentEditIndex = $(this).data('index');
         const rowData = data[currentEditIndex];
         $('#jsonEditor').val(JSON.stringify(rowData, null, 2));
-        $('#encodeB64').prop('checked', false);
         $('#editModalLabel').text(`行 ${currentEditIndex + 1} の編集`);
         $('#editModal').modal('show');
     });
     
-    // デコードボタン
+    // 全体デコードボタン
     $(document).on('click', '.decode-btn', function() {
         const index = $(this).data('index');
         const rowData = data[index];
@@ -152,8 +150,7 @@ $(document).ready(function() {
             // 編集モーダルにデコードされたデータを表示
             currentEditIndex = index;
             $('#jsonEditor').val(JSON.stringify(decodedData, null, 2));
-            $('#encodeB64').prop('checked', false);
-            $('#editModalLabel').text(`行 ${index + 1} のデコード結果 (編集可)`);
+            $('#editModalLabel').text(`行 ${index + 1} の全体デコード結果 (編集可)`);
             $('#editModal').modal('show');
         })
         .catch(error => {
@@ -162,8 +159,51 @@ $(document).ready(function() {
         });
     });
 
+    // 個別Value編集
+    let currentCell = { index: null, key: null };
+    $(document).on('click', 'td.editable-cell', function() {
+        const index = $(this).data('index');
+        const key = $(this).data('key');
+        currentCell = { index, key };
+        
+        const value = data[index][key] || '';
+        $('#valueEditor').val(value);
+        $('#valueEditModalLabel').text(`値の編集 (行: ${index + 1}, キー: ${key})`);
+        $('#valueEditModal').modal('show');
+    });
 
-    // 変更を保存 (モーダル)
+    $('#encodeValueBtn').on('click', function() {
+        try {
+            const currentValue = $('#valueEditor').val();
+            const encodedValue = btoa(currentValue);
+            $('#valueEditor').val(encodedValue);
+        } catch (e) {
+            alert('Base64エンコードに失敗しました。UTF-8以外の文字が含まれている可能性があります。');
+        }
+    });
+
+    $('#decodeValueBtn').on('click', function() {
+        try {
+            const currentValue = $('#valueEditor').val();
+            const decodedValue = atob(currentValue);
+            $('#valueEditor').val(decodedValue);
+        } catch (e) {
+            alert('Base64デコードに失敗しました。正しいBase64文字列ではありません。');
+        }
+    });
+
+    $('#saveValueChange').on('click', function() {
+        const { index, key } = currentCell;
+        if (index !== null && key !== null) {
+            const newValue = $('#valueEditor').val();
+            data[index][key] = newValue;
+            renderTable(); // テーブルを再描画して変更を反映
+            $('#valueEditModal').modal('hide');
+        }
+    });
+
+
+    // 変更を保存 (行モーダル)
     $('#saveChanges').on('click', function() {
         let updatedItem;
         try {
@@ -171,10 +211,6 @@ $(document).ready(function() {
         } catch (e) {
             alert('JSONの形式が正しくありません。');
             return;
-        }
-
-        if ($('#encodeB64').is(':checked')) {
-            updatedItem['__encode_b64__'] = true;
         }
 
         const url = currentEditIndex !== null ? `/api/data/${currentEditIndex}` : '/api/data';
