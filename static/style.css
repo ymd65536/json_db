@@ -8,10 +8,11 @@ body {
 }
 
 .table td, .table th {
-    white-space: nowrap;
+    /* white-space: nowrap; */ /* テキストの折り返しを許可 */
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
+    word-wrap: break-word; /* 長い単語を強制的に折り返す */
 }
 
 .table td.editable-cell {
@@ -28,4 +29,11 @@ tr.selected-row {
 
 .action-buttons button {
     margin-right: 5px;
+}
+
+/* テーブルの最初の列（ラジオボタン）の幅を狭くする */
+.table th:first-child,
+.table td:first-child {
+    width: 1%;
+    white-space: nowrap;
 }
