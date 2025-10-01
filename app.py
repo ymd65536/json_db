@@ -25,6 +25,12 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/files')
+def show_files():
+    """ファイル一覧ページを表示します。"""
+    return render_template('file_list.html')
+
+
 @app.route('/api/files')
 def list_files():
     """raw_jsonディレクトリ内のファイルリストを返します。"""
