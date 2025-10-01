@@ -227,6 +227,7 @@ def list_s3_files():
     aws_profile = data.get('aws_profile')
     aws_region = data.get('aws_region')
     s3_bucket = data.get('s3_bucket')
+    s3_prefix = data.get('s3_prefix', '')
 
     if not all([aws_region, s3_bucket]):
         return jsonify({"error": "必要な情報（リージョン、バケット）が不足しています"}), 400
@@ -234,7 +235,7 @@ def list_s3_files():
     try:
         session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
         s3 = session.client('s3')
-        response = s3.list_objects_v2(Bucket=s3_bucket)
+        response = s3.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
         files = [content['Key'] for content in response.get('Contents', [])]
         return jsonify({"files": files})
     except Exception as e:

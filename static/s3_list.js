@@ -3,6 +3,7 @@ $(document).ready(function() {
         const aws_profile = $('#aws_profile').val();
         const aws_region = $('#aws_region').val();
         const s3_bucket = $('#s3_bucket').val();
+        const s3_prefix = $('#s3_prefix').val();
 
         if (!aws_region || !s3_bucket) {
             alert('AWSリージョンとS3バケット名を入力してください。');
@@ -22,6 +23,7 @@ $(document).ready(function() {
                 aws_profile: aws_profile,
                 aws_region: aws_region,
                 s3_bucket: s3_bucket,
+                s3_prefix: s3_prefix,
             }),
         })
         .then(response => response.json())

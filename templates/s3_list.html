@@ -13,17 +13,21 @@
         <p><a href="/">編集ページに戻る</a></p>
 
         <div class="form-row">
-            <div class="form-group col-md-3">
+            <div class="form-group col-md-2">
                 <label for="aws_profile">AWS Profile</label>
                 <input type="text" class="form-control" id="aws_profile" placeholder="default" value="default">
             </div>
-            <div class="form-group col-md-3">
+            <div class="form-group col-md-2">
                 <label for="aws_region">AWS Region</label>
                 <input type="text" class="form-control" id="aws_region" placeholder="ap-northeast-1" value="ap-northeast-1">
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-3">
                 <label for="s3_bucket">S3 Bucket</label>
                 <input type="text" class="form-control" id="s3_bucket" placeholder="S3バケット名">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="s3_prefix">S3 Object Key (Prefix)</label>
+                <input type="text" class="form-control" id="s3_prefix" placeholder="（オプション）">
             </div>
             <div class="form-group col-md-2 d-flex align-items-end">
                 <button id="list-s3-files-button" class="btn btn-primary btn-block">一覧表示</button>
