@@ -1,0 +1,6 @@
+# envrionment
+.env
+
+# pyton
+.pyc
+__pycache__
