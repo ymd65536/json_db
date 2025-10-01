@@ -84,7 +84,8 @@ $(document).ready(function() {
         // ボディの作成
         data.forEach((row, index) => {
             const isSelected = index === selectedRowIndex ? 'selected-row' : '';
-            let rowHtml = `<tr class="${isSelected}"><td><input type="radio" name="rowSelector" data-index="${index}"></td>`;
+            const isChecked = index === selectedRowIndex ? 'checked' : '';
+            let rowHtml = `<tr class="${isSelected}"><td><input type="radio" name="rowSelector" data-index="${index}" ${isChecked}></td>`;
             headers.forEach(h => {
                 const value = row[h] !== undefined ? row[h] : '';
                 rowHtml += `<td class="editable-cell" data-index="${index}" data-key="${h}" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
