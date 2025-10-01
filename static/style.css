@@ -1,0 +1,19 @@
+body {
+    font-family: sans-serif;
+}
+
+#dataTableContainer {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.table td, .table th {
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action-buttons button {
+    margin-right: 5px;
+}
