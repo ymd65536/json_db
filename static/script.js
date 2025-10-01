@@ -117,6 +117,40 @@ $(document).ready(function() {
         renderTable(); // 選択を反映して再描画
     });
 
+    $('#duplicateRowBtn').on('click', function() {
+        if (selectedRowIndex === null) {
+            alert('操作対象の行を選択してください。');
+            return;
+        }
+        const rowData = data[selectedRowIndex];
+
+        // 新しい行として追加
+        fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rowData)
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.error) {
+                alert('エラー: ' + responseData.error);
+                return;
+            }
+            // データ再取得 & テーブル再描画
+            return fetch('/api/data');
+        })
+        .then(response => response.json())
+        .then(allData => {
+            data = allData;
+            selectedRowIndex = data.length - 1; // 複製してできた最後の行を選択状態にする
+            renderTable();
+        })
+        .catch(error => {
+            console.error('Duplicate error:', error);
+            alert('行の複製に失敗しました。');
+        });
+    });
+
     // --- 操作ボタンのイベントハンドラ ---
     $('#addRowBtn').on('click', function() {
         currentEditIndex = null; // 新規追加モード
