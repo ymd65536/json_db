@@ -235,8 +235,15 @@ def list_s3_files():
     try:
         session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
         s3 = session.client('s3')
-        response = s3.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
-        files = [content['Key'] for content in response.get('Contents', [])]
+        
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=s3_bucket, Prefix=s3_prefix)
+        
+        files = []
+        for page in pages:
+            if 'Contents' in page:
+                files.extend([content['Key'] for content in page['Contents']])
+        
         return jsonify({"files": files})
     except Exception as e:
         return jsonify({"error": f"S3からのファイルリスト取得中にエラーが発生しました: {str(e)}"}), 500
