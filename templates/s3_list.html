@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3ファイル一覧</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>S3バケット内のファイル一覧</h1>
+        <p><a href="/">編集ページに戻る</a></p>
+
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label for="aws_profile">AWS Profile</label>
+                <input type="text" class="form-control" id="aws_profile" placeholder="default" value="default">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="aws_region">AWS Region</label>
+                <input type="text" class="form-control" id="aws_region" placeholder="ap-northeast-1" value="ap-northeast-1">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="s3_bucket">S3 Bucket</label>
+                <input type="text" class="form-control" id="s3_bucket" placeholder="S3バケット名">
+            </div>
+            <div class="form-group col-md-2 d-flex align-items-end">
+                <button id="list-s3-files-button" class="btn btn-primary btn-block">一覧表示</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <h3 id="bucket-name-title"></h3>
+        <ul id="s3-file-list" class="list-group mt-3">
+            <!-- ファイルリストがここに挿入されます -->
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="{{ url_for('static', filename='s3_list.js') }}"></script>
+</body>
+</html>

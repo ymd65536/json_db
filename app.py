@@ -214,5 +214,32 @@ def s3_upload():
         return jsonify({"error": f"S3へのアップロード中にエラーが発生しました: {str(e)}"}), 500
 
 
+@app.route('/s3_files')
+def show_s3_files():
+    """S3ファイル一覧ページを表示します。"""
+    return render_template('s3_list.html')
+
+
+@app.route('/api/s3_files', methods=['POST'])
+def list_s3_files():
+    """S3バケット内のファイルリストを返します。"""
+    data = request.json
+    aws_profile = data.get('aws_profile')
+    aws_region = data.get('aws_region')
+    s3_bucket = data.get('s3_bucket')
+
+    if not all([aws_region, s3_bucket]):
+        return jsonify({"error": "必要な情報（リージョン、バケット）が不足しています"}), 400
+
+    try:
+        session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
+        s3 = session.client('s3')
+        response = s3.list_objects_v2(Bucket=s3_bucket)
+        files = [content['Key'] for content in response.get('Contents', [])]
+        return jsonify({"files": files})
+    except Exception as e:
+        return jsonify({"error": f"S3からのファイルリスト取得中にエラーが発生しました: {str(e)}"}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
