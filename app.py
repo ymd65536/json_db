@@ -145,6 +145,12 @@ def save_file():
         return jsonify({"error": "保存対象のファイルがありません"}), 400
 
     try:
+        # フロントエンドから送信された最新のデータでサーバー側のデータを更新
+        updated_data = request.get_json()
+        if updated_data is None:
+            return jsonify({"error": "保存するデータがありません"}), 400
+        ld_json_data = updated_data
+
         save_path = os.path.join(SAVED_JSON_DIR, current_filename)
         with open(save_path, 'w', encoding='utf-8') as f:
             for item in ld_json_data:

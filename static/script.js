@@ -320,7 +320,9 @@ $(document).ready(function() {
     // ローカルに保存
     $('#saveButton').on('click', function() {
         fetch('/api/save', {
-            method: 'POST'
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data) // フロントエンドの現在のデータを送信
         })
         .then(response => response.json())
         .then(responseData => {
